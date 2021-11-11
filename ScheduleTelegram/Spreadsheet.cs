@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,7 +25,7 @@ namespace ScheduleTelegram
     {
         static string[] Scopes = { SheetsService.Scope.SpreadsheetsReadonly };
         static string ApplicationName = "Google Sheets API .NET Quickstart";
-        public static void Schedule()
+        public static void GetScheduleData()
         {
             UserCredential credential;
 
@@ -52,34 +53,52 @@ namespace ScheduleTelegram
             Dates ScheduleDate = new Dates();
 
             // Define request parameters.
-            String spreadsheetId = "1aUfQruu8lYsUz-CBoy1X7S0Hpke5bGCDBjSBpG7RcQQ";
+            String spreadsheetId = "1qn5WoQTrMtmCtkhz9Lrjy88ZnLFHM19dCha2WuBBZ4k";
             String range = Dates.GetNeededDate() + "!A3:P10";
             SpreadsheetsResource.ValuesResource.GetRequest request =
                     service.Spreadsheets.Values.Get(spreadsheetId, range);
             ValueRange response = request.Execute();
             IList<IList<Object>> values = response.Values;
 
-
-            if (values != null && values.Count > 0)
+            
+            foreach (var row in values)
             {
-                Console.WriteLine("Номер, Урок");
-                foreach (var row in values)
+                // Print columns A and E, which correspond to indices 0 and 4.
+                Console.WriteLine("{0}", row[14]);
+                using (StreamWriter messageData = new("data.txt", true))
                 {
-                    // Print columns A and E, which correspond to indices 0 and 4.
-                    Console.WriteLine("{0} {1}", row[0], row[13]);
-                    using (StreamWriter middleData = new("E:/Sirius.Severstal/db/data.txt", true))
-                    {
-                        middleData.Write("{0} {1}" + "\r\n", row[0], row[13]);
-                    }
-
+                    messageData.Write("{0}" + "\r\n", row[14]);
                 }
             }
-            else
-            {
-                Console.WriteLine("No data found.");
-            }
+            
 
 
+
+        }
+
+        public static void ParseAndFix()
+        {
+            //string regexPattern = @"\s[Кк].*";
+            string regexPattern = @"[^А-я\n]";
+            string replacementWhitespace = @" ";
+            Regex regex = new Regex(regexPattern, RegexOptions.IgnoreCase | RegexOptions.Multiline);
+
+            StreamReader reader = new StreamReader("data.txt");
+            string content = reader.ReadToEnd();
+            reader.Close();
+
+
+            content = regex.Replace(content, replacementWhitespace);
+            content = Regex.Replace(content, "Английски", "Английский язык");
+
+            StreamWriter writer = new StreamWriter("data.txt");
+            writer.Write(content);
+            writer.Close();
+        }
+        public static void Schedule()
+        {
+            GetScheduleData();
+            //ParseAndFix();
         }
     }
 }

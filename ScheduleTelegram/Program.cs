@@ -65,10 +65,10 @@ namespace ScheduleTelegram
                 new BotCommand();
                 Console.WriteLine($"Received a '{update.Message.Text}' message in chat {chatId}.");
 
-                System.IO.File.Delete("E:/Sirius.Severstal/db/data.txt");
+                System.IO.File.Delete("data.txt");
                 Spreadsheet.Schedule();
                 string content;
-                using (StreamReader middleData = new("E:/Sirius.Severstal/db/data.txt", true))
+                using (StreamReader middleData = new("data.txt", true))
                 {
                     content = middleData.ReadToEnd();
                 }
@@ -78,7 +78,6 @@ namespace ScheduleTelegram
                     text: content,
                     parseMode: ParseMode.Markdown
                 );
-                System.IO.File.Delete("E:/Sirius.Severstal/db/data.txt");
             }
         }
     }
