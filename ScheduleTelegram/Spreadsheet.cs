@@ -75,21 +75,78 @@ namespace ScheduleTelegram
 
 
         }
+        public static void RenameSubjects()
+        {
+            StreamReader reader = new StreamReader("data.txt");
+            string content = reader.ReadToEnd();
+            reader.Close();
+
+            string[] initialSubjectArray = new string[] 
+            { 
+                "(Английски)", 
+                "(Литер.чт)\b", 
+                "(Матем)\b", 
+                "(Окр мир)\b", 
+                "(Техн..)\b", 
+                "(Русский)\b",
+                "(Литер.)\b",
+                "(литер)",
+                "(эл.англ.яз)\b",
+                "консультация [()]химия[()]",
+                "(физика)",
+                "(химия).....",
+                "(история)",
+                @"^/n",
+                "акт зал"
+            };
+
+            string[] replacementSubjectArray = new string[] 
+            { 
+                "Английский язык",
+                "Литературное чтение",
+                "Математика",
+                "Окружающий мир",
+                "Технология",
+                "Русский язык",
+                "Литература",
+                "Литература (элективы)",
+                "Английский язык (электив)",
+                "Консультация (химия)",
+                "Физика,",
+                "Химия,",
+                "История,",
+                "Окно",
+                ""
+            };
+
+            for (int i = 0; i < initialSubjectArray.Length; i++)
+            {
+                content = Regex.Replace(content, initialSubjectArray[i], replacementSubjectArray[i]);
+            }
+
+            StreamWriter writer = new StreamWriter("data.txt");
+            writer.Write(content);
+            writer.Close();
+
+
+        }
 
         public static void ParseAndFix()
         {
             //string regexPattern = @"\s[Кк].*";
-            string regexPattern = @"[^А-я\n]";
-            string replacementWhitespace = @" ";
+            string regexPattern = @"([Кк]аб.)\s?\w+\W?";
             Regex regex = new Regex(regexPattern, RegexOptions.IgnoreCase | RegexOptions.Multiline);
 
             StreamReader reader = new StreamReader("data.txt");
             string content = reader.ReadToEnd();
             reader.Close();
-
-
-            content = regex.Replace(content, replacementWhitespace);
-            content = Regex.Replace(content, "Английски", "Английский язык");
+            
+            content = Regex.Replace(content, regexPattern, " ");
+            content = Regex.Replace(content, @"/", " ");
+            //content = Regex.Replace(content, @"\b\s{2,}\n", "");
+            content = Regex.Replace(content, @"\s+$", "\n");
+            content = Regex.Replace(content, @"\s+\n", "\n");
+            content = Regex.Replace(content, @"\s{2,}", " ");
 
             StreamWriter writer = new StreamWriter("data.txt");
             writer.Write(content);
@@ -98,7 +155,8 @@ namespace ScheduleTelegram
         public static void Schedule()
         {
             GetScheduleData();
-            //ParseAndFix();
+            ParseAndFix();
+            RenameSubjects();
         }
     }
 }
