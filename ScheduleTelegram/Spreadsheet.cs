@@ -21,11 +21,14 @@ using ScheduleTelegram;
 
 namespace ScheduleTelegram
 {
+    
     public class Spreadsheet
     {
         static string[] Scopes = { SheetsService.Scope.SpreadsheetsReadonly };
         static string ApplicationName = "Google Sheets API .NET Quickstart";
-        public static void GetScheduleData()
+
+        // Ключевой метод для всей этой штуки. Получаем данные с таблицы и сохраняем их в data.txt
+        public static void GetScheduleData(string commandText)
         {
             UserCredential credential;
 
@@ -54,30 +57,75 @@ namespace ScheduleTelegram
 
             // Define request parameters.
             String spreadsheetId = "1qn5WoQTrMtmCtkhz9Lrjy88ZnLFHM19dCha2WuBBZ4k";
-            String range = Dates.GetNeededDate() + "!A3:P10";
+            String range = Dates.GetNeededDate(commandText) + "!A3:P10";
             SpreadsheetsResource.ValuesResource.GetRequest request =
                     service.Spreadsheets.Values.Get(spreadsheetId, range);
             ValueRange response = request.Execute();
             IList<IList<Object>> values = response.Values;
 
-            
-            foreach (var row in values)
+            switch (commandText)
             {
-                // Print columns A and E, which correspond to indices 0 and 4.
-                Console.WriteLine("{0}", row[14]);
-                using (StreamWriter messageData = new("data.txt", true))
-                {
-                    messageData.Write("{0}" + "\r\n", row[14]);
-                }
+                case "/today":
+                    foreach (var row in values)
+                    {
+                        // Print columns A and E, which correspond to indices 0 and 4.
+                        using (StreamWriter messageData = new("today.txt", true))
+                        {
+                            messageData.Write("{0}" + "\r\n", row[14]);
+                        }
+                    }
+                    return;
+
+                case "/tomorrow":
+                    foreach (var row in values)
+                    {
+                        // Print columns A and E, which correspond to indices 0 and 4.
+
+                        using (StreamWriter messageData = new("tomorrow.txt", true))
+                        {
+                            messageData.Write("{0}" + "\r\n", row[14]);
+                        }
+                    }
+                    return;
+                default:
+                    goto case "/today";
             }
+            
             
 
 
 
         }
-        public static void RenameSubjects()
+
+        public static string CommandCheck(string textMessage)
         {
-            StreamReader reader = new StreamReader("data.txt");
+            string fileName;
+
+
+            switch (textMessage)
+            {
+                case "/today":
+                    fileName = "today.txt";
+                    return fileName;
+                case "/tomorrow":
+                    fileName = "tomorrow.txt";
+                    return fileName;
+                default:
+                    goto case "/today";
+            }
+
+
+        }
+
+        // Небольшой regex для переименовывания нестабильно названных предметов в расписании
+        public static void RenameSubjects(string textMessage)
+        {
+
+            string fileName;
+
+            fileName = CommandCheck(textMessage);
+
+            StreamReader reader = new StreamReader(fileName);
             string content = reader.ReadToEnd();
             reader.Close();
 
@@ -124,20 +172,21 @@ namespace ScheduleTelegram
                 content = Regex.Replace(content, initialSubjectArray[i], replacementSubjectArray[i]);
             }
 
-            StreamWriter writer = new StreamWriter("data.txt");
+            StreamWriter writer = new StreamWriter(fileName);
             writer.Write(content);
             writer.Close();
-
-
         }
 
-        public static void ParseAndFix()
+        // regex для форматирования сообщения. Удаляет названия и номера кабинетов, лишние пробелы и переносы строк
+        public static void ParseAndFix(string textMessage)
         {
             //string regexPattern = @"\s[Кк].*";
             string regexPattern = @"([Кк]аб.)\s?\w+\W?";
             Regex regex = new Regex(regexPattern, RegexOptions.IgnoreCase | RegexOptions.Multiline);
 
-            StreamReader reader = new StreamReader("data.txt");
+            string fileName = CommandCheck(textMessage);
+
+            StreamReader reader = new StreamReader(fileName);
             string content = reader.ReadToEnd();
             reader.Close();
             
@@ -148,15 +197,39 @@ namespace ScheduleTelegram
             content = Regex.Replace(content, @"\s+\n", "\n");
             content = Regex.Replace(content, @"\s{2,}", " ");
 
-            StreamWriter writer = new StreamWriter("data.txt");
+            StreamWriter writer = new StreamWriter(fileName);
             writer.Write(content);
             writer.Close();
         }
-        public static void Schedule()
+        public static string Schedule(string textMessage)
         {
-            GetScheduleData();
-            ParseAndFix();
-            RenameSubjects();
+            //System.IO.File.Delete("today.txt");
+            //System.IO.File.Delete("tomorrow.txt");
+
+            CommandCheck(textMessage);
+            GetScheduleData(textMessage);
+            ParseAndFix(textMessage);
+            RenameSubjects(textMessage);
+
+            string messageReply;
+            
+            switch (textMessage)
+            {
+                case "/today":
+                    using (StreamReader middleData = new("today.txt", true))
+                    {
+                        messageReply = middleData.ReadToEnd();
+                    }
+                    return messageReply;
+                case "/tomorrow":
+                    using (StreamReader middleData = new("tomorrow.txt", true))
+                    {
+                        messageReply = middleData.ReadToEnd();
+                    }
+                    return messageReply;
+                default:
+                    goto case "/today";
+            }
         }
     }
 }

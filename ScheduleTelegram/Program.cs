@@ -25,15 +25,15 @@ namespace ScheduleTelegram
         {
             var botClient = new TelegramBotClient("1998802934:AAETZNUZQZ1h_QB8yclMgXncAEfwchmArrM");
             var me = await botClient.GetMeAsync();
-            Console.WriteLine(
-              $"Hello, World! I am user {me.Id} and my name is {me.FirstName}."
-            );
+            Console.Title = me.Username;
             using var cts = new CancellationTokenSource();
 
+
+
             // StartReceiving does not block the caller thread. Receiving is done on the ThreadPool.
-            botClient.StartReceiving(
-                new DefaultUpdateHandler(HandleUpdateAsync, HandleErrorAsync),
-                cts.Token);
+            botClient.StartReceiving(new DefaultUpdateHandler(Handlers.HandleUpdateAsync, Handlers.HandleErrorAsync),
+                           cts.Token);
+
 
             Console.WriteLine($"Start listening for @{me.Username}");
             Console.ReadLine();
@@ -41,44 +41,45 @@ namespace ScheduleTelegram
             // Send cancellation request to stop bot
             cts.Cancel();
 
-            Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
-            {
-                var ErrorMessage = exception switch
-                {
-                    ApiRequestException apiRequestException => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
-                    _ => exception.ToString()
-                };
+            //Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
+            //{
+            //    var ErrorMessage = exception switch
+            //    {
+            //        ApiRequestException apiRequestException => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
+            //        _ => exception.ToString()
+            //    };
 
-                Console.WriteLine(ErrorMessage);
-                return Task.CompletedTask;
-            }
-            Spreadsheet Sheets = new Spreadsheet();
+            //    Console.WriteLine(ErrorMessage);
+            //    return Task.CompletedTask;
+            //}
+            //Spreadsheet Sheets = new Spreadsheet();
 
-            async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
-            {
-                if (update.Type != UpdateType.Message)
-                    return;
-                if (update.Message.Type != MessageType.Text)
-                    return;
+            //async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+            //{
 
-                var chatId = update.Message.Chat.Id;
-                new BotCommand();
-                Console.WriteLine($"Received a '{update.Message.Text}' message in chat {chatId}.");
+            //    if (update.Type != UpdateType.Message)
+            //        return;
+            //    if (update.Message.Type != MessageType.Text)
+            //        return;
 
-                System.IO.File.Delete("data.txt");
-                Spreadsheet.Schedule();
-                string content;
-                using (StreamReader middleData = new("data.txt", true))
-                {
-                    content = middleData.ReadToEnd();
-                }
+            //    var chatId = update.Message.Chat.Id;
+            //    new BotCommand();
+            //    Console.WriteLine($"Received a '{update.Message.Text}' message in chat {chatId}.");
 
-                await botClient.SendTextMessageAsync(
-                    chatId: chatId,
-                    text: content,
-                    parseMode: ParseMode.Markdown
-                );
-            }
+            //    System.IO.File.Delete("data.txt");
+            //    Spreadsheet.Schedule();
+            //    string content;
+            //    using (StreamReader middleData = new("data.txt", true))
+            //    {
+            //        content = middleData.ReadToEnd();
+            //    }
+
+            //    await botClient.SendTextMessageAsync(
+            //        chatId: chatId,
+            //        text: content,
+            //        parseMode: ParseMode.Markdown
+            //    );
+            //}
         }
     }
 }

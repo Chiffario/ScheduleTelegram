@@ -11,22 +11,30 @@ namespace ScheduleTelegram
     public class Dates
     {
         static string NextSchoolDay;
-        public static string GetNeededDate()
+        public static string GetNeededDate(string commandText)
         // Функция, определяющая следующий рабочий день
         {
             DateTime today = DateTime.Now;
             DateTime tomorrow;
-            if (today.DayOfWeek == DayOfWeek.Saturday)
+            switch (commandText)
             {
-                DateTime nextday = today.AddDays(2);
-                tomorrow = nextday;
+                case "/today":
+                    return NextSchoolDay = (string)today.ToString("dd.MM.yy");
+
+                case "/tomorrow":
+                    if (today.DayOfWeek == DayOfWeek.Saturday)
+                    {
+                        tomorrow = today.AddDays(2);
+                    }
+                    else
+                    {
+                        tomorrow = today.AddDays(1);
+                    }
+                    return NextSchoolDay = (string)tomorrow.ToString("dd.MM.yy");
+                default:
+                    return NextSchoolDay = (string)today.ToString("dd.MM.yy");
             }
-            else
-            {
-                DateTime nextday = today.AddDays(1);
-                tomorrow = nextday;
-            }
-            return NextSchoolDay = (string)tomorrow.ToString("dd.MM.yy");
+            
         }
     }
 }
