@@ -1,22 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using System.Text.RegularExpressions;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.Unicode;
+
 using System.Threading.Tasks;
 using System.IO;
 using System.Threading;
+
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Extensions.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
+
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
+
 using ScheduleTelegram;
 
 namespace ScheduleTelegram
@@ -26,6 +34,18 @@ namespace ScheduleTelegram
     {
         static string[] Scopes = { SheetsService.Scope.SpreadsheetsReadonly };
         static string ApplicationName = "Google Sheets API .NET Quickstart";
+
+        
+        public class Lessons
+        {
+            public string MajorDimension { get; set; }
+            public string Range { get; set; }
+            public List<List<string>> Values { get; set; }
+            public object ETag { get; set; }
+        }
+
+
+
 
         // Ключевой метод для всей этой штуки. Получаем данные с таблицы и сохраняем их в data.txt
         public static void GetScheduleData(string commandText)
@@ -53,43 +73,61 @@ namespace ScheduleTelegram
                 ApplicationName = ApplicationName,
             });
 
-            Dates ScheduleDate = new Dates();
+            var serializerOpt = new JsonSerializerOptions
+            {
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(UnicodeRanges.All),
+                WriteIndented = true,
+            };
 
+
+                Dates ScheduleDate = new Dates();
             // Define request parameters.
             String spreadsheetId = "1qn5WoQTrMtmCtkhz9Lrjy88ZnLFHM19dCha2WuBBZ4k";
-            String range = Dates.GetNeededDate(commandText) + "!A3:P10";
+            String range = Dates.GetNeededDate(commandText) + "!B3:P10";
             SpreadsheetsResource.ValuesResource.GetRequest request =
                     service.Spreadsheets.Values.Get(spreadsheetId, range);
+            request.MajorDimension = SpreadsheetsResource.ValuesResource.GetRequest.MajorDimensionEnum.COLUMNS;
             ValueRange response = request.Execute();
+            string jsonString = JsonSerializer.Serialize(response, serializerOpt);
+            System.IO.File.WriteAllText("testjson", jsonString);
             IList<IList<Object>> values = response.Values;
 
-            switch (commandText)
+            int i = 0;
+            foreach (List<Object> subList in values)
             {
-                case "/today":
-                    foreach (var row in values)
-                    {
-                        // Print columns A and E, which correspond to indices 0 and 4.
-                        using (StreamWriter messageData = new("today.txt", true))
-                        {
-                            messageData.Write("{0}" + "\r\n", row[14]);
-                        }
-                    }
-                    return;
-
-                case "/tomorrow":
-                    foreach (var row in values)
-                    {
-                        // Print columns A and E, which correspond to indices 0 and 4.
-
-                        using (StreamWriter messageData = new("tomorrow.txt", true))
-                        {
-                            messageData.Write("{0}" + "\r\n", row[14]);
-                        }
-                    }
-                    return;
-                default:
-                    goto case "/today";
+                i++;
+                string tempFileName = "grade" + " " + i.ToString();
+                string jsonTest = JsonSerializer.Serialize(subList, serializerOpt);
+                System.IO.File.WriteAllText(tempFileName, jsonTest);
             }
+            //switch (commandText)
+            //{
+            //    case "/today":
+            //        foreach (var row in values)
+            //        {
+            //            // Print columns A and E, which correspond to indices 0 and 4.
+            //            using (StreamWriter messageData = new("today.txt", true))
+            //            {
+            //                messageData.Write("{0}" + "\r\n", row[14]);
+            //            }
+
+            //        }
+            //        return;
+
+            //    case "/tomorrow":
+            //        foreach (var row in values)
+            //        {
+            //            // Print columns A and E, which correspond to indices 0 and 4.
+
+            //            using (StreamWriter messageData = new("tomorrow.txt", true))
+            //            {
+            //                messageData.Write("{0}" + "\r\n", row[14]);
+            //            }
+            //        }
+            //        return;
+            //    default:
+            //        goto case "/today";
+            //}
             
             
 
