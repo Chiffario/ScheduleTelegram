@@ -31,8 +31,7 @@ namespace ScheduleTelegram
 
 
             // StartReceiving does not block the caller thread. Receiving is done on the ThreadPool.
-            botClient.StartReceiving(new DefaultUpdateHandler(Handlers.HandleUpdateAsync, Handlers.HandleErrorAsync),
-                           cts.Token);
+            botClient.StartReceiving(Handlers.HandleUpdateAsync, Handlers.HandleErrorAsync, cancellationToken: cts.Token);
 
 
             Console.WriteLine($"Start listening for @{me.Username}");
