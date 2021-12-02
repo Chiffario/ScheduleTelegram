@@ -20,7 +20,7 @@ namespace ScheduleTelegram
 {
     class Program
     {
-        
+
         public static async Task Main()
         {
             var botClient = new TelegramBotClient("1998802934:AAETZNUZQZ1h_QB8yclMgXncAEfwchmArrM");

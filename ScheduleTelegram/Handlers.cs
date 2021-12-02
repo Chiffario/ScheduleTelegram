@@ -55,7 +55,7 @@ namespace ScheduleTelegram
                 //_ => UnknownUpdateHandlerAsync(botClient, update)
             };
 
-            
+
 
             try
             {
@@ -114,4 +114,3 @@ namespace ScheduleTelegram
         }
     }
 }
-

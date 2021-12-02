@@ -34,7 +34,7 @@ namespace ScheduleTelegram
                 default:
                     return NextSchoolDay = (string)today.ToString("dd.MM.yy");
             }
-            
+
         }
     }
 }
