@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,18 +6,8 @@ using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.InlineQueryResults;
-using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
-using Telegram.Bot.Extensions.Polling;
 
-using Google.Apis.Auth.OAuth2;
-using Google.Apis.Sheets.v4;
-using Google.Apis.Sheets.v4.Data;
-using Google.Apis.Services;
-using Google.Apis.Util.Store;
-
-using ScheduleTelegram;
 using System.Linq;
 
 namespace ScheduleTelegram
@@ -79,11 +67,11 @@ namespace ScheduleTelegram
             {
                 "/today" => SendTodaySchedule(botClient, message),
                 "/tomorrow" => SendTomorrowSchedule(botClient, message),
+                "/start" => SetupSystem(botClient, message)
             };
-
+            // Task для получения расписания на сегодня
             static async Task<Message> SendTodaySchedule(ITelegramBotClient botClient, Message message)
             {
-                System.IO.File.Delete("today.txt");
                 string text = Spreadsheet.Schedule("/today");
 
                 new BotCommand();
@@ -98,7 +86,6 @@ namespace ScheduleTelegram
 
             static async Task<Message> SendTomorrowSchedule(ITelegramBotClient botClient, Message message)
             {
-                System.IO.File.Delete("tomorrow.txt");
                 string text = Spreadsheet.Schedule("/tomorrow");
 
                 new BotCommand();
@@ -109,6 +96,11 @@ namespace ScheduleTelegram
                     text: text,
                     parseMode: ParseMode.Markdown
                     );
+            }
+
+            static async Task SetupSystem(ITelegramBotClient botClient, Message message)
+            {
+                await UserSetup.StatusSetup(botClient, message);
             }
 
         }

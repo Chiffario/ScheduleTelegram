@@ -46,13 +46,21 @@ namespace ScheduleTelegram
 
         public class LessonsReformatted
         {
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
             public string ClassOne { get; set; }
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
             public string ClassTwo { get; set; }
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
             public string ClassThree { get; set; }
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
             public string ClassFour { get; set; }
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
             public string ClassFive { get; set; }
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
             public string ClassSix { get; set; }
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
             public string ClassSeven { get; set; }
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
             public string ClassEight { get; set; }
         }
 
@@ -118,8 +126,8 @@ namespace ScheduleTelegram
                     ClassFour = (string)subList[3],
                     ClassFive = (string)subList[4],
                     ClassSix = (string)subList[5],
-                    ClassSeven = (string)subList[1],
-                    ClassEight = (string)subList[1]
+                    ClassSeven = (string)subList[6],
+                    ClassEight = (string)subList[7]
                 };
 
                 string jsonTest = JsonSerializer.Serialize<LessonsReformatted>(lessons, serializerOpt);
@@ -128,30 +136,10 @@ namespace ScheduleTelegram
                 ParseAndFix(tempFileName);
                 RenameSubjects(tempFileName);
             }
-            
 
 
 
 
-
-        }
-
-        public static string CommandCheck(string textMessage)
-        {
-            string fileName;
-
-
-            switch (textMessage)
-            {
-                case "/today":
-                    fileName = "today.txt";
-                    return fileName;
-                case "/tomorrow":
-                    fileName = "tomorrow.txt";
-                    return fileName;
-                default:
-                    goto case "/today";
-            }
 
 
         }
@@ -257,7 +245,6 @@ namespace ScheduleTelegram
             //System.IO.File.Delete("today.txt");
             //System.IO.File.Delete("tomorrow.txt");
 
-            CommandCheck(textMessage);
             GetScheduleData(textMessage);
 
             string messageReply;
@@ -269,8 +256,8 @@ namespace ScheduleTelegram
                     {
                         string text = middleData.ReadToEnd();
                         LessonsReformatted lessons = JsonSerializer.Deserialize<LessonsReformatted>(text);
-                        messageReply = ($"{lessons.ClassOne} \n {lessons.ClassTwo}\n {lessons.ClassThree}\n {lessons.ClassFour}\n {lessons.ClassFive}\n {lessons.ClassSix}\n {lessons.ClassSeven}\n {lessons.ClassEight}");
-                        
+                        messageReply = ($"{lessons.ClassOne}\n{lessons.ClassTwo}\n{lessons.ClassThree}\n{lessons.ClassFour}\n{lessons.ClassFive}\n{lessons.ClassSix}\n{lessons.ClassSeven}\n{lessons.ClassEight}");
+
                     }
                     return messageReply;
 
@@ -279,7 +266,7 @@ namespace ScheduleTelegram
                     {
                         string text = middleData.ReadToEnd();
                         LessonsReformatted lessons = JsonSerializer.Deserialize<LessonsReformatted>(text);
-                        messageReply = ($"{lessons.ClassOne} \n {lessons.ClassTwo}\n {lessons.ClassThree}\n {lessons.ClassFour}\n {lessons.ClassFive}\n {lessons.ClassSix}\n {lessons.ClassSeven}\n {lessons.ClassEight}");
+                        messageReply = ($"{lessons.ClassOne}\n{lessons.ClassTwo}\n{lessons.ClassThree}\n{lessons.ClassFour}\n{lessons.ClassFive}\n{lessons.ClassSix}\n{lessons.ClassSeven}\n{lessons.ClassEight}");
                     }
                     return messageReply;
                 default:

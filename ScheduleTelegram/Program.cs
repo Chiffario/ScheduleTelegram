@@ -40,45 +40,7 @@ namespace ScheduleTelegram
             // Send cancellation request to stop bot
             cts.Cancel();
 
-            //Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
-            //{
-            //    var ErrorMessage = exception switch
-            //    {
-            //        ApiRequestException apiRequestException => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
-            //        _ => exception.ToString()
-            //    };
-
-            //    Console.WriteLine(ErrorMessage);
-            //    return Task.CompletedTask;
-            //}
-            //Spreadsheet Sheets = new Spreadsheet();
-
-            //async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
-            //{
-
-            //    if (update.Type != UpdateType.Message)
-            //        return;
-            //    if (update.Message.Type != MessageType.Text)
-            //        return;
-
-            //    var chatId = update.Message.Chat.Id;
-            //    new BotCommand();
-            //    Console.WriteLine($"Received a '{update.Message.Text}' message in chat {chatId}.");
-
-            //    System.IO.File.Delete("data.txt");
-            //    Spreadsheet.Schedule();
-            //    string content;
-            //    using (StreamReader middleData = new("data.txt", true))
-            //    {
-            //        content = middleData.ReadToEnd();
-            //    }
-
-            //    await botClient.SendTextMessageAsync(
-            //        chatId: chatId,
-            //        text: content,
-            //        parseMode: ParseMode.Markdown
-            //    );
-            //}
+            
         }
     }
 }
