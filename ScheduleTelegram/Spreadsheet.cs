@@ -58,9 +58,9 @@ namespace ScheduleTelegram
             public string ClassFive { get; set; }
             [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
             public string ClassSix { get; set; }
-            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            //[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
             public string ClassSeven { get; set; }
-            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            //[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
             public string ClassEight { get; set; }
         }
 
@@ -103,22 +103,27 @@ namespace ScheduleTelegram
             Dates ScheduleDate = new Dates();
             // Define request parameters.
             String spreadsheetId = "1qn5WoQTrMtmCtkhz9Lrjy88ZnLFHM19dCha2WuBBZ4k";
-            String range = Dates.GetNeededDate(commandText) + "!B3:P10";
+            String range = Dates.GetNeededDate(commandText) + "!B3:O10";
             SpreadsheetsResource.ValuesResource.GetRequest request =
                     service.Spreadsheets.Values.Get(spreadsheetId, range);
             request.MajorDimension = SpreadsheetsResource.ValuesResource.GetRequest.MajorDimensionEnum.COLUMNS;
             ValueRange response = request.Execute();
             string jsonString = JsonSerializer.Serialize(response, serializerOpt);
-            System.IO.File.WriteAllText("testjson", jsonString);
+            System.IO.File.WriteAllText("testjson.json", jsonString);
+            
             IList<IList<Object>> values = response.Values;
 
             int i = 0;
             foreach (List<Object> subList in values)
             {
+                
                 i++;
                 string tempFileName = "grade" + i.ToString() + ".json";
-
-                LessonsReformatted lessons = new LessonsReformatted
+                while (subList.Count < 8)
+                {
+                    subList.Add("");
+                }
+                LessonsReformatted lessons = new()
                 {
                     ClassOne = (string)subList[0],
                     ClassTwo = (string)subList[1],
@@ -129,9 +134,10 @@ namespace ScheduleTelegram
                     ClassSeven = (string)subList[6],
                     ClassEight = (string)subList[7]
                 };
-
+                
+                Console.WriteLine(subList.Count);
                 string jsonTest = JsonSerializer.Serialize<LessonsReformatted>(lessons, serializerOpt);
-                Console.WriteLine(jsonTest);
+                // Console.WriteLine(jsonTest);
                 System.IO.File.WriteAllText(tempFileName, jsonTest);
                 ParseAndFix(tempFileName);
                 RenameSubjects(tempFileName);
