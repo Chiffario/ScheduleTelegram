@@ -36,39 +36,39 @@ namespace ScheduleTelegram
         static string ApplicationName = "Google Sheets API .NET Quickstart";
 
 
-        public class Lessons
-        {
-            public string MajorDimension { get; set; }
-            public string Range { get; set; }
-            public List<List<string>> Values { get; set; }
-            public object ETag { get; set; }
-        }
+        //public class Lessons
+        //{
+        //    public string MajorDimension { get; set; }
+        //    public string Range { get; set; }
+        //    public List<List<string>> Values { get; set; }
+        //    public object ETag { get; set; }
+        //}
 
-        public class LessonsReformatted
-        {
-            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-            public string ClassOne { get; set; }
-            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-            public string ClassTwo { get; set; }
-            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-            public string ClassThree { get; set; }
-            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-            public string ClassFour { get; set; }
-            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-            public string ClassFive { get; set; }
-            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-            public string ClassSix { get; set; }
-            //[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-            public string ClassSeven { get; set; }
-            //[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-            public string ClassEight { get; set; }
-        }
+        //public class LessonsReformatted
+        //{
+        //    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        //    public string ClassOne { get; set; }
+        //    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        //    public string ClassTwo { get; set; }
+        //    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        //    public string ClassThree { get; set; }
+        //    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        //    public string ClassFour { get; set; }
+        //    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        //    public string ClassFive { get; set; }
+        //    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        //    public string ClassSix { get; set; }
+        //    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        //    public string ClassSeven { get; set; }
+        //    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        //    public string ClassEight { get; set; }
+        //}
 
 
 
 
         // Ключевой метод для всей этой штуки. Получаем данные с таблицы и сохраняем их в data.txt
-        public static void GetScheduleData(string commandText)
+        public static IList<IList<Object>> GetScheduleData(string commandText)
         {
             UserCredential credential;
 
@@ -102,28 +102,35 @@ namespace ScheduleTelegram
 
             Dates ScheduleDate = new Dates();
             // Define request parameters.
-            String spreadsheetId = "1qn5WoQTrMtmCtkhz9Lrjy88ZnLFHM19dCha2WuBBZ4k";
+            String spreadsheetId = "1zTBKh1OsB1_lxvAYJmJ7GomQa_OmjX4d0Eag3TxAIeI";
             String range = Dates.GetNeededDate(commandText) + "!B3:O10";
             SpreadsheetsResource.ValuesResource.GetRequest request =
                     service.Spreadsheets.Values.Get(spreadsheetId, range);
             request.MajorDimension = SpreadsheetsResource.ValuesResource.GetRequest.MajorDimensionEnum.COLUMNS;
-            ValueRange response = request.Execute();
-            string jsonString = JsonSerializer.Serialize(response, serializerOpt);
-            System.IO.File.WriteAllText("testjson.json", jsonString);
-            
+            ValueRange response = request.Execute();            
             IList<IList<Object>> values = response.Values;
+            return values;
+
+        }
+         public static void SchedTest(IList<IList<Object>> values)
+        {
+            var serializerOpt = new JsonSerializerOptions
+            {
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(UnicodeRanges.All),
+                WriteIndented = true,
+            };
 
             int i = 0;
             foreach (List<Object> subList in values)
             {
-                
+
                 i++;
                 string tempFileName = "grade" + i.ToString() + ".json";
                 while (subList.Count < 8)
                 {
                     subList.Add("");
                 }
-                LessonsReformatted lessons = new()
+                Formats.LessonsReformatted lessons = new()
                 {
                     ClassOne = (string)subList[0],
                     ClassTwo = (string)subList[1],
@@ -134,20 +141,14 @@ namespace ScheduleTelegram
                     ClassSeven = (string)subList[6],
                     ClassEight = (string)subList[7]
                 };
-                
+
                 Console.WriteLine(subList.Count);
-                string jsonTest = JsonSerializer.Serialize<LessonsReformatted>(lessons, serializerOpt);
+                string jsonTest = JsonSerializer.Serialize<Formats.LessonsReformatted>(lessons, serializerOpt);
                 // Console.WriteLine(jsonTest);
                 System.IO.File.WriteAllText(tempFileName, jsonTest);
                 ParseAndFix(tempFileName);
                 RenameSubjects(tempFileName);
             }
-
-
-
-
-
-
         }
 
         // Небольшой regex для переименовывания нестабильно названных предметов в расписании
@@ -261,7 +262,7 @@ namespace ScheduleTelegram
                     using (StreamReader middleData = new("grade14.json", true))
                     {
                         string text = middleData.ReadToEnd();
-                        LessonsReformatted lessons = JsonSerializer.Deserialize<LessonsReformatted>(text);
+                        Formats.LessonsReformatted lessons = JsonSerializer.Deserialize<Formats.LessonsReformatted>(text);
                         messageReply = ($"{lessons.ClassOne}\n{lessons.ClassTwo}\n{lessons.ClassThree}\n{lessons.ClassFour}\n{lessons.ClassFive}\n{lessons.ClassSix}\n{lessons.ClassSeven}\n{lessons.ClassEight}");
 
                     }
@@ -271,7 +272,7 @@ namespace ScheduleTelegram
                     using (StreamReader middleData = new("grade14.json", true))
                     {
                         string text = middleData.ReadToEnd();
-                        LessonsReformatted lessons = JsonSerializer.Deserialize<LessonsReformatted>(text);
+                        Formats.LessonsReformatted lessons = JsonSerializer.Deserialize<Formats.LessonsReformatted>(text);
                         messageReply = ($"{lessons.ClassOne}\n{lessons.ClassTwo}\n{lessons.ClassThree}\n{lessons.ClassFour}\n{lessons.ClassFive}\n{lessons.ClassSix}\n{lessons.ClassSeven}\n{lessons.ClassEight}");
                     }
                     return messageReply;

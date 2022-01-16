@@ -18,19 +18,24 @@ public class Formats
         public List<List<string>> Values { get; set; }
         public object ETag { get; set; }
     }
+
     public class LessonsReformatted
     {
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string ClassOne { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string ClassTwo { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string ClassThree { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string ClassFour { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string ClassFive { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string ClassSix { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string ClassSeven { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string ClassEight { get; set; }
-    }
-    public enum SubjNames
-    {
-
     }
 }
