@@ -21,6 +21,9 @@ public class Formats
 
     public class LessonsReformatted
     {
+        public DateTime currentWeekday { get; set; }
+        public DateTime currentDate { get; set; }
+        public string Grade { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string ClassOne { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

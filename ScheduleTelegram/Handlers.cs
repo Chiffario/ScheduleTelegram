@@ -9,6 +9,9 @@ using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
 using System.Linq;
+using System.IO;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace ScheduleTelegram
 {
@@ -54,54 +57,98 @@ namespace ScheduleTelegram
                 await HandleErrorAsync(botClient, exception, cancellationToken);
             }
         }
+        //private static async Task UnknownUpdateHandlerAsync(ITelegramBotClient botClient, Message message)
+        //{
 
+        //}
         private static async Task BotOnMessageReceived(ITelegramBotClient botClient, Message message)
         {
 
-            Console.WriteLine($"Receive message type: {message.Type}");
+            Console.WriteLine($"Receive message: {message.Text}");
             if (message.Type != MessageType.Text)
                 return;
 
 
             var action = message.Text.Split(' ').First() switch
             {
-                "/today" => SendTodaySchedule(botClient, message),
-                "/tomorrow" => SendTomorrowSchedule(botClient, message),
-                "/start" => SetupSystem(botClient, message)
+                "/today" => TodayCommand(botClient, message),
+                "/tomorrow" => TomorrowCommand(botClient, message),
+                // "/start" => SetupSystem(botClient, message),
+                //regexPattern => SendClassSchedule(botClient, message),
+                string => SendClassSchedule(botClient, message),
+                _ => SendErrorMessage(botClient, message)
             };
             // Task для получения расписания на сегодня
-            static async Task<Message> SendTodaySchedule(ITelegramBotClient botClient, Message message)
+            static async Task TodayCommand(ITelegramBotClient botClient, Message message)
             {
                 string text = Spreadsheet.Schedule("/today");
 
                 new BotCommand();
 
-                return await botClient.SendTextMessageAsync
+                await botClient.SendTextMessageAsync
                     (
                     chatId: message.Chat.Id,
-                    text: text,
+                    text: "Выберите класс",
                     parseMode: ParseMode.Markdown
                     );
+                //await SendClassSchedule(botClient, message);
             }
 
-            static async Task<Message> SendTomorrowSchedule(ITelegramBotClient botClient, Message message)
+            static async Task TomorrowCommand(ITelegramBotClient botClient, Message message)
             {
                 string text = Spreadsheet.Schedule("/tomorrow");
 
                 new BotCommand();
 
-                return await botClient.SendTextMessageAsync
+                await botClient.SendTextMessageAsync
                     (
                     chatId: message.Chat.Id,
-                    text: text,
+                    text: "Выберите класс",
                     parseMode: ParseMode.Markdown
                     );
             }
 
-            static async Task SetupSystem(ITelegramBotClient botClient, Message message)
+            static async Task<Message> SendClassSchedule(ITelegramBotClient botClient, Message message)
             {
-                await UserSetup.StatusSetup(botClient, message);
+                string messageReply;
+                
+                string grade = message.Text.ToString();
+                Console.WriteLine();
+                using (StreamReader middleData = new($"grade{grade}.json", true))
+                {
+                    string text = middleData.ReadToEnd();
+                    Formats.LessonsReformatted lessons = JsonSerializer.Deserialize<Formats.LessonsReformatted>(text);
+                    messageReply = ($"{lessons.ClassOne}\n{lessons.ClassTwo}\n{lessons.ClassThree}\n{lessons.ClassFour}\n{lessons.ClassFive}\n{lessons.ClassSix}\n{lessons.ClassSeven}\n{lessons.ClassEight}");
+
+                }
+                return await botClient.SendTextMessageAsync
+                    (
+                    chatId: message.Chat.Id,
+                    text: messageReply,
+                    parseMode: ParseMode.Markdown
+                    );
             }
+            static async Task<Message> SendErrorMessage(ITelegramBotClient botClient, Message message)
+            {
+                return await botClient.SendTextMessageAsync
+                    (
+                    chatId: message.Chat.Id,
+                    text: "you fucked up, message: " + message.Text,
+                    parseMode: ParseMode.Markdown
+                    );
+            }
+
+            //static async Task<Message> Test(ITelegramBotClient botClient, Message message)
+            //{
+            //    await BotOnMessageReceived(botClient, message);
+
+            //    return await botClient.SendTextMessageAsync
+            //        (
+            //        chatId: message.Chat.Id,
+            //        text: message.Text,
+            //        parseMode: ParseMode.Markdown
+            //        );
+            //}
 
         }
     }
