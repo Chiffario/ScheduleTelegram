@@ -35,40 +35,8 @@ namespace ScheduleTelegram
         static string[] Scopes = { SheetsService.Scope.SpreadsheetsReadonly };
         static string ApplicationName = "Google Sheets API .NET Quickstart";
 
-
-        public class Lessons
-        {
-            public string MajorDimension { get; set; }
-            public string Range { get; set; }
-            public List<List<string>> Values { get; set; }
-            public object ETag { get; set; }
-        }
-
-        public class LessonsReformatted
-        {
-            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-            public string ClassOne { get; set; }
-            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-            public string ClassTwo { get; set; }
-            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-            public string ClassThree { get; set; }
-            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-            public string ClassFour { get; set; }
-            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-            public string ClassFive { get; set; }
-            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-            public string ClassSix { get; set; }
-            //[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-            public string ClassSeven { get; set; }
-            //[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-            public string ClassEight { get; set; }
-        }
-
-
-
-
         // Ключевой метод для всей этой штуки. Получаем данные с таблицы и сохраняем их в data.txt
-        public static void GetScheduleData(string commandText)
+        public static IList<IList<Object>> GetScheduleData(string commandText)
         {
             UserCredential credential;
 
@@ -100,57 +68,57 @@ namespace ScheduleTelegram
             };
 
 
-            Dates ScheduleDate = new Dates();
+            Dates ScheduleDate = new();
             // Define request parameters.
-            String spreadsheetId = "1qn5WoQTrMtmCtkhz9Lrjy88ZnLFHM19dCha2WuBBZ4k";
-            String range = Dates.GetNeededDate(commandText) + "!B3:O10";
+            String spreadsheetId = "1aUfQruu8lYsUz-CBoy1X7S0Hpke5bGCDBjSBpG7RcQQ";
+            String range = Dates.GetNeededDate(commandText) + "!B2:O10";
             SpreadsheetsResource.ValuesResource.GetRequest request =
                     service.Spreadsheets.Values.Get(spreadsheetId, range);
             request.MajorDimension = SpreadsheetsResource.ValuesResource.GetRequest.MajorDimensionEnum.COLUMNS;
-            ValueRange response = request.Execute();
-            string jsonString = JsonSerializer.Serialize(response, serializerOpt);
-            System.IO.File.WriteAllText("testjson.json", jsonString);
-            
+            ValueRange response = request.Execute();            
             IList<IList<Object>> values = response.Values;
+            return values;
+        }
+         public static void FormatInitialSchedule(IList<IList<Object>> values)
+         {
+            var serializerOpt = new JsonSerializerOptions
+            {
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(UnicodeRanges.All),
+                WriteIndented = true,
+            };
 
-            int i = 0;
             foreach (List<Object> subList in values)
             {
-                
-                i++;
-                string tempFileName = "grade" + i.ToString() + ".json";
-                while (subList.Count < 8)
+
+                string tempFileName = "grade" + (string)subList[0] + ".json";
+                while (subList.Count < 9)
                 {
                     subList.Add("");
                 }
-                LessonsReformatted lessons = new()
+                Formats.LessonsReformatted lessons = new()
                 {
-                    ClassOne = (string)subList[0],
-                    ClassTwo = (string)subList[1],
-                    ClassThree = (string)subList[2],
-                    ClassFour = (string)subList[3],
-                    ClassFive = (string)subList[4],
-                    ClassSix = (string)subList[5],
-                    ClassSeven = (string)subList[6],
-                    ClassEight = (string)subList[7]
+                    Grade = (string)subList[0],
+                    ClassOne = (string)subList[1],
+                    ClassTwo = (string)subList[2],
+                    ClassThree = (string)subList[3],
+                    ClassFour = (string)subList[4],
+                    ClassFive = (string)subList[5],
+                    ClassSix = (string)subList[6],
+                    ClassSeven = (string)subList[7],
+                    ClassEight = (string)subList[8]
                 };
-                
-                Console.WriteLine(subList.Count);
-                string jsonTest = JsonSerializer.Serialize<LessonsReformatted>(lessons, serializerOpt);
-                // Console.WriteLine(jsonTest);
+
+                string jsonTest = JsonSerializer.Serialize<Formats.LessonsReformatted>(lessons, serializerOpt);
                 System.IO.File.WriteAllText(tempFileName, jsonTest);
                 ParseAndFix(tempFileName);
                 RenameSubjects(tempFileName);
             }
-
-
-
-
-
-
         }
 
-        // Небольшой regex для переименовывания нестабильно названных предметов в расписании
+        /// <summary>
+        /// Метод, заменяющий все неполноценные названия школьных предметов на полные их формы
+        /// </summary>
+        /// <param name="tempFilePath"> - Путь к файлу с расписанием</param>
         public static void RenameSubjects(string tempFilePath)
         {
 
@@ -216,7 +184,10 @@ namespace ScheduleTelegram
             writer.Close();
         }
 
-        // regex для форматирования сообщения. Удаляет названия и номера кабинетов, лишние пробелы и переносы строк
+        /// <summary>
+        /// Метод, заменяющий лишние символы в тексте расписания с помощью Regex.Replace
+        /// </summary>
+        /// <param name="tempFileName"></param>
         public static void ParseAndFix(string tempFileName)
         {
             //string regexPattern = @"\s[Кк].*";
@@ -251,27 +222,28 @@ namespace ScheduleTelegram
             //System.IO.File.Delete("today.txt");
             //System.IO.File.Delete("tomorrow.txt");
 
-            GetScheduleData(textMessage);
+            var values = GetScheduleData(textMessage);
+            FormatInitialSchedule(values);
 
             string messageReply;
 
             switch (textMessage)
             {
                 case "/today":
-                    using (StreamReader middleData = new("grade14.json", true))
+                    using (StreamReader middleData = new("grade11.json", true))
                     {
                         string text = middleData.ReadToEnd();
-                        LessonsReformatted lessons = JsonSerializer.Deserialize<LessonsReformatted>(text);
+                        Formats.LessonsReformatted lessons = JsonSerializer.Deserialize<Formats.LessonsReformatted>(text);
                         messageReply = ($"{lessons.ClassOne}\n{lessons.ClassTwo}\n{lessons.ClassThree}\n{lessons.ClassFour}\n{lessons.ClassFive}\n{lessons.ClassSix}\n{lessons.ClassSeven}\n{lessons.ClassEight}");
 
                     }
                     return messageReply;
 
                 case "/tomorrow":
-                    using (StreamReader middleData = new("grade14.json", true))
+                    using (StreamReader middleData = new("grade11.json", true))
                     {
                         string text = middleData.ReadToEnd();
-                        LessonsReformatted lessons = JsonSerializer.Deserialize<LessonsReformatted>(text);
+                        Formats.LessonsReformatted lessons = JsonSerializer.Deserialize<Formats.LessonsReformatted>(text);
                         messageReply = ($"{lessons.ClassOne}\n{lessons.ClassTwo}\n{lessons.ClassThree}\n{lessons.ClassFour}\n{lessons.ClassFive}\n{lessons.ClassSix}\n{lessons.ClassSeven}\n{lessons.ClassEight}");
                     }
                     return messageReply;
