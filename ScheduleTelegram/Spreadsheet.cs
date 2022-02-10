@@ -70,7 +70,7 @@ namespace ScheduleTelegram
 
             Dates ScheduleDate = new();
             // Define request parameters.
-            String spreadsheetId = "1zTBKh1OsB1_lxvAYJmJ7GomQa_OmjX4d0Eag3TxAIeI";
+            String spreadsheetId = "1aUfQruu8lYsUz-CBoy1X7S0Hpke5bGCDBjSBpG7RcQQ";
             String range = Dates.GetNeededDate(commandText) + "!B2:O10";
             SpreadsheetsResource.ValuesResource.GetRequest request =
                     service.Spreadsheets.Values.Get(spreadsheetId, range);
@@ -79,16 +79,13 @@ namespace ScheduleTelegram
             IList<IList<Object>> values = response.Values;
             return values;
         }
-         public static void SchedTest(IList<IList<Object>> values)
+         public static void FormatInitialSchedule(IList<IList<Object>> values)
          {
             var serializerOpt = new JsonSerializerOptions
             {
                 Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(UnicodeRanges.All),
                 WriteIndented = true,
             };
-
-            //DateTime currentWeekday = DateTime.Today();
-            //DateTime currentDate = 
 
             foreach (List<Object> subList in values)
             {
@@ -112,14 +109,16 @@ namespace ScheduleTelegram
                 };
 
                 string jsonTest = JsonSerializer.Serialize<Formats.LessonsReformatted>(lessons, serializerOpt);
-                // Console.WriteLine(jsonTest);
                 System.IO.File.WriteAllText(tempFileName, jsonTest);
                 ParseAndFix(tempFileName);
                 RenameSubjects(tempFileName);
             }
         }
 
-        // Небольшой regex для переименовывания нестабильно названных предметов в расписании
+        /// <summary>
+        /// Метод, заменяющий все неполноценные названия школьных предметов на полные их формы
+        /// </summary>
+        /// <param name="tempFilePath"> - Путь к файлу с расписанием</param>
         public static void RenameSubjects(string tempFilePath)
         {
 
@@ -185,7 +184,10 @@ namespace ScheduleTelegram
             writer.Close();
         }
 
-        // regex для форматирования сообщения. Удаляет названия и номера кабинетов, лишние пробелы и переносы строк
+        /// <summary>
+        /// Метод, заменяющий лишние символы в тексте расписания с помощью Regex.Replace
+        /// </summary>
+        /// <param name="tempFileName"></param>
         public static void ParseAndFix(string tempFileName)
         {
             //string regexPattern = @"\s[Кк].*";
@@ -221,7 +223,7 @@ namespace ScheduleTelegram
             //System.IO.File.Delete("tomorrow.txt");
 
             var values = GetScheduleData(textMessage);
-            SchedTest(values);
+            FormatInitialSchedule(values);
 
             string messageReply;
 
