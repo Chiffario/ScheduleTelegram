@@ -102,7 +102,7 @@ namespace ScheduleTelegram
 
             Dates ScheduleDate = new Dates();
             // Define request parameters.
-            String spreadsheetId = "1qn5WoQTrMtmCtkhz9Lrjy88ZnLFHM19dCha2WuBBZ4k";
+            String spreadsheetId = "placeholder_sheet_id";
             String range = Dates.GetNeededDate(commandText) + "!B3:O10";
             SpreadsheetsResource.ValuesResource.GetRequest request =
                     service.Spreadsheets.Values.Get(spreadsheetId, range);
