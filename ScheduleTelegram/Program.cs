@@ -23,7 +23,7 @@ namespace ScheduleTelegram
 
         public static async Task Main()
         {
-            var botClient = new TelegramBotClient("1998802934:AAETZNUZQZ1h_QB8yclMgXncAEfwchmArrM");
+            var botClient = new TelegramBotClient("TGtokenplaceholder");
             var me = await botClient.GetMeAsync();
             Console.Title = me.Username;
             using var cts = new CancellationTokenSource();
